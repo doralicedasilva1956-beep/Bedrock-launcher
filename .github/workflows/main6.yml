@@ -1,0 +1,21 @@
+name: Build
+on: [push]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      run: |
+        mkdir -p a/src/main/java/com/z/l
+        mkdir -p a/lib/armeabi-v7a
+        echo "package com.z.l;public class M{ " > a/src/main/java/com/z/l/M.java
+        for i in {1..250}; do echo "public void l$i(){}" >> a/src/main/java/com/z/l/M.java; done
+        echo "}" >> a/src/main/java/com/z/l/M.java
+        openssl rand -out a/lib/armeabi-v7a/libe.so $((40*1024*1024))
+        cd a && zip -r ../z.apk . && cd ..
+        keytool -genkey -v -keystore k.jks -storepass 123456 -alias a -keypass 123456 -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=A"
+        jarsigner -keystore k.jks -storepass 123456 z.apk a
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zalith_APK
+          path: z.apk
