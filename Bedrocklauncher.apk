@@ -1,0 +1,110 @@
+// ==========================================
+// 1. CONFIGURAÇÃO DO APP (build.gradle)
+// ==========================================
+/*
+   Configurações obrigatórias:
+   - Suporte Android 8.0 (API 26)
+   - Arquitetura: armeabi-v7a
+   - Versão: 1.0
+*/
+
+// ==========================================
+// 2. INTERFACE VISUAL (activity_main.xml)
+// ==========================================
+/*
+<RelativeLayout xmlns:android="http://android.com"
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent" 
+    android:background="#1E1E1E">
+
+    <EditText 
+        android:id="@+id/editUsername" 
+        android:layout_width="280dp" 
+        android:layout_height="50dp"
+        android:layout_centerInParent="true" 
+        android:hint="Usuário Offline" 
+        android:textColor="#FFF" 
+        android:background="#333" 
+        android:padding="10dp""")/>>
+
+    <Button 
+        android:id="@+id/btnLaunch" 
+        android:layout_width="280dp" 
+        android:layout_height="70dp"
+        android:layout_below="@id/editUsername" 
+        android:layout_centerHorizontal="true" 
+        android:layout_marginTop="20dp"
+        android:text="JOGAR" 
+        android:backgroundTint="#3C8527" 
+        android:textColor="#FFF" />
+
+    <TextView 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" 
+        android:text="Versão 1.0 | armeabi-v7a | Ícone: Grama" 
+        android:textColor="#555" 
+        android:layout_margin="10dp""")/>>
+</RelativeLayout>
+*/
+
+// ==========================================
+// 3. MOTOR NATIVO EM C++ (native-lib.cpp)
+// ==========================================
+/*
+#include <jni.h>
+#include <string>
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_seu_mcbe_launcher_MainActivity_launchMinecraftNative(JNIEnv* env, jobject obj, jstring user, jstring path) {
+    // Converte os dados recebidos do Android para o código C++
+    const char *username = env->GetStringUTFChars(user, 0);
+    
+    // TODO: Lógica para carregar a libminecraftpe.so offline
+    // Esta parte requer o arquivo .so original do jogo.
+    
+    env->ReleaseStringUTFChars(user, username);
+}
+*/
+
+// ==========================================
+// 4. LÓGICA PRINCIPAL EM KOTLIN (MainActivity.kt)
+// ==========================================
+
+package com.seu.mcbe_launcher
+
+import android.os.Bundle
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
+
+    // Link com a função C++ definida acima
+    external fun launchMinecraftNative(username: String, gamePath: String)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val btnPlay = findViewById<Button>(R.id.btnLaunch)
+        val inputUser = findViewById<EditText>(R.id.editUsername)
+
+        btnPlay.setOnClickListener {
+            val user = inputUser.text.toString()
+            if (user.isNotEmpty()) {
+                // Comando para o C++ iniciar o jogo
+                launchMinecraftNative(user, applicationInfo.nativeLibraryDir)
+                Toast.makeText(this, "Iniciando Minecraft Bedrock como $user", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Por favor, digite um nome!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    companion object {
+        init {
+            // Carrega o motor C++
+            System.loadLibrary("native-lib")
+        }
+    }
+}
